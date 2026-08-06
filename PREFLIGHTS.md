@@ -7,6 +7,7 @@
 
 중요:
 - 환경 검증이 통과하기 전에는 실제 Ralphy feature task를 실행하지 마라.
+- Ralphy의 AI engine은 항상 Codex CLI로 고정하고 다른 AI CLI로 fallback하지 마라.
 - 질문부터 하지 말고 저장소를 직접 조사하라.
 - 기존 변경사항을 reset, clean, checkout, stash 또는 삭제하지 마라.
 - 자동 commit/push를 하지 마라.
@@ -58,7 +59,7 @@ package script는 재귀적으로 분석하라.
 1. `ralph.environment.json`
    - runtime 최소 버전
    - package manager
-   - 필수 command와 AI CLI
+   - 필수 command와 Codex CLI
    - 필수 환경변수 이름
    - port와 service
    - Docker/Playwright 필요 여부
@@ -117,7 +118,8 @@ package script는 재귀적으로 분석하라.
 
 * Git 저장소와 쓰기 권한
 * runtime/package manager 버전
-* Ralphy와 AI CLI command
+* Ralphy와 Codex CLI command
+* `codex login status`
 * manifest/lockfile 일관성
 * project dependency 설치 상태
 * tsc, eslint, vitest, next, playwright 등 local executable
@@ -151,6 +153,7 @@ quality command는 저장소에서 분석하여 결정하라.
 
 * 실행 직전에 verify를 다시 수행
 * verify가 성공하고 fingerprint가 최신일 때만 Ralphy 실행
+* Ralphy를 반드시 `ralphy --codex`로 실행
 * `--` 뒤 argument를 배열로 그대로 전달
 * Ralphy exit code를 그대로 반환
 
@@ -185,7 +188,7 @@ PASS / BLOCKED / USER ACTION REQUIRED
 
 ## 감지한 환경
 
-runtime, package manager, quality command, Ralphy engine
+runtime, package manager, quality command, Ralphy engine (Codex)
 
 ## 수행한 작업
 
@@ -211,4 +214,3 @@ PASS이면 preflight wrapper를 이용한 pilot 명령
 모든 검증이 통과하기 전에는 실제 feature task를 실행하지 마라.
 
 이제 작업을 시작하라.
-

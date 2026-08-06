@@ -1,13 +1,21 @@
-# Ralph Starter Package Guide
+# Codex Ralph Starter Package Guide
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f81d9b30-b292-4b01-8019-4d93715f6c11" />
 
-Claude Code와 Ralphy를 사용해 제품 기획부터 반복 구현까지 실행하는 최소 가이드입니다. 
+Codex CLI와 Ralphy를 사용해 제품 기획부터 반복 구현까지 실행하는 최소 가이드입니다.
 - [Guide pptx](https://docs.google.com/presentation/d/1YSHV4lT72-h20uqtvwE0CJfigv7_WoKiI7ePklIlKlo/edit?usp=sharing)
 - [Sample Product](https://github.com/minsub0922/ralph-tui-game-sample)
 
 
-> 예시는 Claude Code 기준입니다. 다른 Code Agent를 사용할 경우 같은 Agent를 기획과 Ralphy 실행에 사용하세요.
+> 이 fork는 Codex CLI 전용입니다. 제품 기획과 Ralphy 실행에 모두 Codex를 사용합니다.
+
+## 0. 필수 도구 확인
+
+```bash
+codex --version
+codex login status
+ralphy --version
+```
 
 ## 1. 저장소 초기화
 
@@ -19,18 +27,18 @@ git config user.name "YOUR_NAME"
 git config user.email "YOUR_EMAIL"
 ```
 
-## 2. Code Agent로 제품 기획
+## 2. Codex로 제품 기획
 
-Claude Code를 실행합니다.
+Codex CLI를 실행합니다.
 
 ```bash
-claude
+codex
 ```
 
-다음 문서의 전체 내용을 복사해 Claude Code에 입력합니다.
+다음 문서의 전체 내용을 복사해 Codex CLI에 입력합니다.
 
 ```text
-https://github.com/minsub0922/ralph-start-pack/blob/main/SETUP_PROMPTS.md
+https://github.com/pysunn14/ralph-start-pack/blob/main/SETUP_PROMPTS.md
 ```
 
 기획 결과를 검토한 뒤 확정합니다.
@@ -39,7 +47,7 @@ https://github.com/minsub0922/ralph-start-pack/blob/main/SETUP_PROMPTS.md
 확정
 ```
 
-Claude Code를 종료합니다.
+Codex CLI를 종료합니다.
 
 ```text
 /exit
@@ -67,10 +75,11 @@ seed scaffold: 제품 기능이 아닌 프로젝트 뼈대만 먼저 설정
 
 ```bash
 ralphy --no-commit --max-retries 1 --no-browser \
-  "Read PRODUCT.md, tasks.yaml, and AGENTS.md.
-   Create only the minimal runnable seed project.
-   Do not implement product features.
-   Add npm run check and make it pass."
+  --codex \
+  "Read PRODUCT.md, tasks.yaml, and AGENTS.md.
+   Create only the minimal runnable seed project.
+   Do not implement product features.
+   Add npm run check and make it pass."
 ```
 
 scaffold 이후 init
@@ -123,19 +132,19 @@ ralphy --add-rule \
 
 ## 5. Ralphy 설정 생성
 
-Claude Code를 다시 실행합니다.
+Codex CLI를 다시 실행합니다.
 
 ```bash
-claude
+codex
 ```
 
 다음 프롬프트를 입력합니다.
 
 ```text
-@PRODUCT.md @AGENTS.md @tasks.yaml을 기반으로 @.ralphy/config.yaml을 채워.
+Read PRODUCT.md, AGENTS.md, and tasks.yaml, then populate .ralphy/config.yaml for this project. Do not implement product features.
 ```
 
-설정 내용을 확인한 뒤 Claude Code를 종료합니다.
+설정 내용을 확인한 뒤 Codex CLI를 종료합니다.
 
 ```text
 /exit
@@ -150,11 +159,11 @@ cat .ralphy/config.yaml
 ## 6. Ralphy 실행
 
 ```bash
-ralphy --yaml tasks.yaml
+ralphy --codex --yaml tasks.yaml
 ```
 
 중단 후 다시 시작할 때도 같은 명령을 실행합니다.
 
 ```bash
-ralphy --yaml tasks.yaml
+ralphy --codex --yaml tasks.yaml
 ```
