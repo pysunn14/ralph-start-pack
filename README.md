@@ -3,6 +3,8 @@
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f81d9b30-b292-4b01-8019-4d93715f6c11" />
 
 Codex CLI와 Ralphy를 사용해 제품 기획부터 반복 구현까지 실행하는 최소 가이드입니다.
+구현 모델과 추론 강도는 사용자 Codex 설정을 기본으로 상속하며,
+선택적으로 태스크별 Draft PR 리뷰·수정·재리뷰 사이클을 사용할 수 있습니다.
 - [Guide pptx](https://docs.google.com/presentation/d/1YSHV4lT72-h20uqtvwE0CJfigv7_WoKiI7ePklIlKlo/edit?usp=sharing)
 - [Sample Product](https://github.com/minsub0922/ralph-tui-game-sample)
 
@@ -59,12 +61,13 @@ Codex CLI를 종료합니다.
 PRODUCT.md
 AGENTS.md
 tasks.yaml
+ralph.workflow.json
 ```
 
 생성된 기획 파일을 커밋합니다.
 
 ```bash
-git add PRODUCT.md AGENTS.md tasks.yaml
+git add PRODUCT.md AGENTS.md tasks.yaml ralph.workflow.json
 git commit -m "docs: define product and Ralph tasks"
 ```
 
@@ -124,7 +127,7 @@ ralphy --add-rule \
   "Do not weaken, skip, delete, or rewrite tests merely to make them pass"
 
 ralphy --add-rule \
-  "Do not modify SETUP_PROMPTS.md, PREFLIGHTS.md, PRODUCT.md, AGENTS.md, ralph.environment.json, scripts/ralph-preflight.sh, or files under .ralphy/preflight"
+  "Do not modify SETUP_PROMPTS.md, PREFLIGHTS.md, PRODUCT.md, AGENTS.md, ralph.workflow.json, ralph.environment.json, scripts/ralph-preflight.sh, or files under .ralphy/preflight"
 
 ralphy --add-rule \
   "Complete exactly one task per iteration and create exactly one descriptive Git commit containing the task implementation, tests, tasks.yaml update, and .ralphy/progress.txt update before reporting completion"
@@ -141,7 +144,7 @@ codex
 다음 프롬프트를 입력합니다.
 
 ```text
-Read PRODUCT.md, AGENTS.md, and tasks.yaml, then populate .ralphy/config.yaml for this project. Do not implement product features.
+Read PRODUCT.md, AGENTS.md, tasks.yaml, and ralph.workflow.json, then populate .ralphy/config.yaml for this project. Protect the workflow and preflight files from feature tasks. Do not implement product features.
 ```
 
 설정 내용을 확인한 뒤 Codex CLI를 종료합니다.
@@ -156,14 +159,55 @@ Read PRODUCT.md, AGENTS.md, and tasks.yaml, then populate .ralphy/config.yaml fo
 cat .ralphy/config.yaml
 ```
 
-## 6. Ralphy 실행
+## 6. Preflight 생성과 검증
+
+Codex CLI를 다시 실행하고 `PREFLIGHTS.md`의 전체 내용을 입력합니다.
 
 ```bash
-ralphy --codex --yaml tasks.yaml
+codex
 ```
 
-중단 후 다시 시작할 때도 같은 명령을 실행합니다.
+생성 작업이 끝나면 다음 파일을 확인합니다.
+
+```text
+ralph.environment.json
+scripts/ralph-preflight.sh
+```
+
+현재 환경을 검증합니다.
 
 ```bash
-ralphy --codex --yaml tasks.yaml
+./scripts/ralph-preflight.sh plan tasks.yaml
+./scripts/ralph-preflight.sh setup tasks.yaml
+./scripts/ralph-preflight.sh verify tasks.yaml
 ```
+
+리뷰 사이클을 사용하려면 push 가능한 GitHub `origin`, GitHub CLI 로그인과
+PR 생성·merge 권한이 필요합니다. Preflight가 이를 읽기 전용으로 확인하고,
+충족하지 못하면 feature task를 시작하지 않습니다.
+
+## 7. Ralphy 실행
+
+`ralph.workflow.json`에서 리뷰 사이클을 사용하지 않는 경우:
+
+```bash
+./scripts/ralph-preflight.sh run tasks.yaml -- \
+  --yaml tasks.yaml \
+  --max-iterations 1 \
+  --max-retries 1 \
+  --no-browser
+```
+
+리뷰 사이클을 사용하는 경우:
+
+```bash
+./scripts/ralph-preflight.sh cycle tasks.yaml -- \
+  --yaml tasks.yaml \
+  --max-retries 1 \
+  --no-browser
+```
+
+`manual` merge에서는 PR을 ready 상태로 만든 뒤 멈추고,
+사용자가 merge한 후 같은 명령을 다시 실행합니다.
+`automatic` merge에서는 최신 커밋의 리뷰, quality command, 설정된 status check와
+GitHub merge 상태가 모두 통과한 경우에만 merge하고 다음 태스크로 진행합니다.
